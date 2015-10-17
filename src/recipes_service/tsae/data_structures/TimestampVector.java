@@ -55,6 +55,9 @@ public class TimestampVector implements Serializable{
 	 * @param timestamp
 	 */
 	public synchronized void updateTimestamp(Timestamp timestamp){
+		if (timestamp != null) {
+            this.timestampVector.replace(timestamp.getHostid(), timestamp);
+        }
 	}
 	
 	/**

@@ -64,16 +64,18 @@ public class Log implements Serializable{
 	 * @return true if op is inserted, false otherwise.
 	 */
 	public synchronized boolean add(Operation op){
-		String hostId = op.getTimestamp().getHostid();
-        Timestamp lastTimestamp = this.getLastTimestamp(hostId);
+		/******REVISAR******/
+		String hostID = op.getTimestamp().getHostid();
+        Timestamp lastTimestamp = this.getLastTimestamp(hostID);
         long timestampDifference = op.getTimestamp().compare(lastTimestamp);       
         if ((lastTimestamp == null && timestampDifference == 0)
                 || (lastTimestamp != null && timestampDifference == 1)) {
-            this.log.get(hostId).add(op);
+            this.log.get(hostID).add(op);
             return true;
         } else {
             return false;
         }
+        /******REVISAR******/
 	}
 	
 	/**
@@ -86,8 +88,31 @@ public class Log implements Serializable{
 	 */
 	public synchronized List<Operation> listNewer(TimestampVector sum){
 		
+		/******REVISAR******/
+		List<Operation> missingList = new Vector();
+
+        /**
+         * Go through all the hosts in the log
+         */
+
+        for (String node : this.log.keySet()) {
+            List<Operation> operations = this.log.get(node);
+            Timestamp timestampToCompare = summary.getLast(node);
+
+        	/**
+        	 * Go through all the operations per host and collect all those which are smaller
+        	 * than the timestampVector passed formthe specific host.
+        	 */
+            for (Operation op : operations) {
+                if (op.getTimestamp().compare(timestampToCompare) > 0) {
+                    missingList.add(op);
+                }
+            }
+        }
+        return missingList;
 		// return generated automatically. Remove it when implementing your solution 
 		return null;
+		/******REVISAR******/
 	}
 	
 	/**
@@ -125,5 +150,15 @@ public class Log implements Serializable{
 	}
 		
 		return name;
+	}
+	private Timestamp getLastTimestamp(String hostID) {
+        List<Operation> operations = this.log.get(hostID);
+
+        if (operations == null || operations.isEmpty()) {
+            return null;
+        } else {
+            return operations.get(operations.size() - 1).getTimestamp();
+        }
+		
 	}
 }
