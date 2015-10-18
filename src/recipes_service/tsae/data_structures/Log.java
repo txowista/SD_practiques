@@ -87,32 +87,9 @@ public class Log implements Serializable{
 	 * @return list of operations
 	 */
 	public synchronized List<Operation> listNewer(TimestampVector sum){
-		
-		/******REVISAR******/
-		List<Operation> missingList = new Vector();
-
-        /**
-         * Go through all the hosts in the log
-         */
-
-        for (String node : this.log.keySet()) {
-            List<Operation> operations = this.log.get(node);
-            Timestamp timestampToCompare = summary.getLast(node);
-
-        	/**
-        	 * Go through all the operations per host and collect all those which are smaller
-        	 * than the timestampVector passed formthe specific host.
-        	 */
-            for (Operation op : operations) {
-                if (op.getTimestamp().compare(timestampToCompare) > 0) {
-                    missingList.add(op);
-                }
-            }
-        }
-        return missingList;
 		// return generated automatically. Remove it when implementing your solution 
 		return null;
-		/******REVISAR******/
+
 	}
 	
 	/**
@@ -130,9 +107,19 @@ public class Log implements Serializable{
 	 */
 	@Override
 	public synchronized boolean equals(Object obj) {
-		
+		/******TODO******/
+		boolean result;
+		if(obj==null)return false;
+	    if (this == obj)return true;
+        if (!(obj instanceof Log))return false;        
+        Log compare = (Log) obj;
+        if (this.log == compare.log) return true;
+        if (this.log == null || compare.log == null) return false;
+        result=this.log.equals(compare.log);
+        return result;
+        /******TODO******/
 		// return generated automatically. Remove it when implementing your solution 
-		return false;
+		//return false;
 	}
 
 	/**

@@ -91,12 +91,15 @@ public class TSAESessionOriginatorSide extends TimerTask{
 			// receive message to inform about the ending of the TSAE session
 
 			socket.close();
-		} catch (ClassNotFoundException e) {
+		} //catch (ClassNotFoundException e) {//Comment because Eclipse said Description	Resource	Path	Location	Type
+		//Unreachable catch block for ClassNotFoundException. This exception is never thrown from the try statement body	TSAESessionPartnerSide.java	/2015t-practiques-SD--baseCode/src/recipes_service/tsae/sessions	line 65	Java Problem
+
+		catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
             System.exit(1);
-		}catch (IOException e) {
-	    }
+		}/*catch (IOException e) {//Comment because Exception
+	    }*/
 	
 	}
 }

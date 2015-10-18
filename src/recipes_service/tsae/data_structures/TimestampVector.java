@@ -55,9 +55,10 @@ public class TimestampVector implements Serializable{
 	 * @param timestamp
 	 */
 	public synchronized void updateTimestamp(Timestamp timestamp){
-		if (timestamp != null) {
-            this.timestampVector.replace(timestamp.getHostid(), timestamp);
-        }
+		/******TODO******/
+		String hostID=timestamp.getHostid();
+		this.timestampVector.replace(hostID, timestamp);      
+		/******TODO******/
 	}
 	
 	/**
@@ -96,14 +97,18 @@ public class TimestampVector implements Serializable{
 		// return generated automatically. Remove it when implementing your solution 
 		return null;
 	}
-	
 	/**
 	 * equals
 	 */
 	public synchronized boolean equals(TimestampVector tsVector){
-		
-		// return generated automatically. Remove it when implementing your solution 
-		return false;
+		/******TODO******/
+		boolean result;
+		if (this.timestampVector == tsVector.timestampVector) return true;
+        if (this.timestampVector == null || tsVector.timestampVector == null)return false;    
+        result=this.timestampVector.equals(tsVector.timestampVector);
+        return result;
+		/******TODO******/
+		//return false;
 	}
 
 	/**
