@@ -64,18 +64,44 @@ public class Log implements Serializable{
 	 * @return true if op is inserted, false otherwise.
 	 */
 	public synchronized boolean add(Operation op){
-		/******REVISAR******/
-		String hostID = op.getTimestamp().getHostid();
-        Timestamp lastTimestamp = this.getLastTimestamp(hostID);
-        long timestampDifference = op.getTimestamp().compare(lastTimestamp);       
-        if ((lastTimestamp == null && timestampDifference == 0)
-                || (lastTimestamp != null && timestampDifference == 1)) {
-            this.log.get(hostID).add(op);
-            return true;
-        } else {
-            return false;
-        }
-        /******REVISAR******/
+		/******TODO******/
+		//First get the HostID  through the class op(that is class operation) method getHostid() 
+		String hostID = op.getTimestamp().getHostid(); 
+		// call a method to obtain the lastTimestamp of hostID
+        Timestamp lastTimestamp = this.returnLastTimestamp(hostID);
+        //create class timestampDifference to compare
+        Timestamp timestampDifference=op.getTimestamp();
+        //obtain in long the difference with 
+        long longTimestampDifference = timestampDifference.compare(lastTimestamp); 
+        //create variable if Add to controller the value return and if op is inserted
+        boolean result=false;
+        //if lastTimestamp is null and the difference is 0 result is true
+        if (lastTimestamp == null && longTimestampDifference == 0)result=true;
+        //if lastTimestamp is not null and the difference is 1 result is true
+        if(lastTimestamp != null && longTimestampDifference == 1)result=true;
+        //if result is true the operation is add
+        if(result)this.log.get(hostID).add(op);    
+        return result;        
+        /******TODO******/
+	}
+	/**
+	 * This method return the LastTimestamp
+	 * @param: String with the host ID
+	 * @return: null or the lastTimesTamp 
+	 * */
+	private Timestamp returnLastTimestamp(String hostID) {
+		//Create a List of Operations
+      List<Operation> operations = this.log.get(hostID);
+      //If operations is null or is empty(method of interface List) return null
+      if (operations == null || operations.isEmpty()) {
+          return null;
+      } else {
+    	  //the last is the list is their size -1
+    	  int lastOperationsList=operations.size() - 1;
+    	//if is OK return the Timestamp the last of list 
+    	  return operations.get(lastOperationsList).getTimestamp();
+      }
+		
 	}
 	
 	/**
@@ -104,22 +130,25 @@ public class Log implements Serializable{
 
 	/**
 	 * equals
+	 * @param object
+	 * @return boolean with the result of operation
 	 */
 	@Override
 	public synchronized boolean equals(Object obj) {
 		/******TODO******/
 		boolean result;
+		//if object is null return false and is not necessary do anything
 		if(obj==null)return false;
+		//if object is this same return true because are equals 
 	    if (this == obj)return true;
-        if (!(obj instanceof Log))return false;        
+	    //if object is not object log return false  
+        if (!(obj instanceof Log))return false;    
+        //create object log with the @param
         Log compare = (Log) obj;
-        if (this.log == compare.log) return true;
-        if (this.log == null || compare.log == null) return false;
+        //return the result of method compare
         result=this.log.equals(compare.log);
         return result;
         /******TODO******/
-		// return generated automatically. Remove it when implementing your solution 
-		//return false;
 	}
 
 	/**
@@ -138,14 +167,5 @@ public class Log implements Serializable{
 		
 		return name;
 	}
-	private Timestamp getLastTimestamp(String hostID) {
-        List<Operation> operations = this.log.get(hostID);
 
-        if (operations == null || operations.isEmpty()) {
-            return null;
-        } else {
-            return operations.get(operations.size() - 1).getTimestamp();
-        }
-		
-	}
 }
