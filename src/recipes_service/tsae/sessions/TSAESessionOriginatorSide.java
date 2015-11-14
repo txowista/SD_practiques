@@ -30,6 +30,11 @@ import recipes_service.activity_simulation.SimulationData;
 import recipes_service.communication.Host;
 import communication.ObjectInputStream_DS;
 import communication.ObjectOutputStream_DS;
+//TODO 
+//import new for the phase 2
+import recipes_service.tsae.data_structures.*;
+import recipes_service.communication.*;
+import java.util.*;
 
 
 /**
@@ -79,12 +84,44 @@ public class TSAESessionOriginatorSide extends TimerTask{
 			Socket socket = new Socket(n.getAddress(), n.getPort());
 			ObjectInputStream_DS in = new ObjectInputStream_DS(socket.getInputStream());
 			ObjectOutputStream_DS out = new ObjectOutputStream_DS(socket.getOutputStream());
-
-			// send localSummary and localAck
+			//Create the object localSummary with contain the summary of server 
+			/******TODO******/
+			TimestampVector localSummary;
+			TimestampMatrix localAck;
+			
+            synchronized (serverData) {
+                localSummary = serverData.getSummary().clone();
+                serverData.getAck().update(serverData.getId(), localSummary);
+                localAck=serverData.getAck().clone();
+               
+            }
+            /******TODO******/
+			// Send to partner: local's summary and ack
+            List<MessageOperation> operations = new ArrayList<>();
+			Message msg = new MessageAErequest(localSummary, localAck);
+            out.writeObject(msg);
 
             // receive operations from partner
+            msg = (Message) in.readObject();
+            while (msg.type() == MsgType.OPERATION){
+            operations.add((MessageOperation)msg);
+            msg = (Message) in.readObject();
+            }
 
-            // receive partner's summary and ack
+         // receive partner's summary and ack
+            if (msg.type() == MsgType.AE_REQUEST){
+            
+            // send operations
+            
+            // send and "end of TSAE session" message
+            msg = new MessageEndTSAE();
+            out.writeObject(msg);
+            // receive message to inform about the ending of the TSAE session
+            msg = (Message) in.readObject();
+            if (msg.type() == MsgType.END_TSAE){
+            //
+            }
+            }
 
 			// send and "end of TSAE session" message
 

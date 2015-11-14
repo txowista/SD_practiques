@@ -55,10 +55,12 @@ public class TimestampVector implements Serializable{
 	 * @param timestamp
 	 */
 	public synchronized void updateTimestamp(Timestamp timestamp){
-		/******TODO******/
+
+		//Obtein the hostID of the Timestamp pased
 		String hostID=timestamp.getHostid();
+		//With the method replace the timestamp with the timestamp pased
 		this.timestampVector.replace(hostID, timestamp);      
-		/******TODO******/
+		
 	}
 	
 	/**
@@ -93,21 +95,28 @@ public class TimestampVector implements Serializable{
 	 * clone
 	 */
 	public synchronized TimestampVector clone(){
-		
-		// return generated automatically. Remove it when implementing your solution 
-		return null;
+		/******TODO and check******/
+		//return a new object of this timestampVector that clone this 
+		TimestampVector clonedVector= new TimestampVector((List<String>)this.timestampVector);
+		return clonedVector;
+		/******TODO******/
+				
 	}
 	/**
 	 * equals
+	 * @param TimestampVector
+	 * @return true if TimestampVector is equals,or false.
 	 */
 	public synchronized boolean equals(TimestampVector tsVector){
-		/******TODO******/
+		//variable boolean to record result
 		boolean result;
+		//if the TimestampVector passed and this object return true because are equals
 		if (this.timestampVector == tsVector.timestampVector) return true;
-        if (this.timestampVector == null || tsVector.timestampVector == null)return false;    
+		//if the TimestampVector passed or this object are null return false because are not TimestampVector
+        if (this.timestampVector == null || tsVector.timestampVector == null)return false; 
+        //the result of method equals of class
         result=this.timestampVector.equals(tsVector.timestampVector);
         return result;
-		/******TODO******/
 		//return false;
 	}
 

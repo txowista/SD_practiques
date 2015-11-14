@@ -25,6 +25,8 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
+/*TODO**/
+import java.util.*;
 
 /**
  * @author Joan-Manuel Marques, Daniel Lázaro Iglesias
@@ -42,6 +44,9 @@ public class TimestampMatrix implements Serializable{
 			timestampMatrix.put(it.next(), new TimestampVector(participants));
 		}
 	}
+	//TODO
+	private TimestampMatrix() {
+    }
 	
 	/**
 	 * @param node
@@ -66,6 +71,7 @@ public class TimestampMatrix implements Serializable{
 	 * @param tsVector
 	 */
 	public synchronized void update(String node, TimestampVector tsVector){
+		this.timestampMatrix.replace(node, tsVector);
 	}
 	
 	/**
@@ -83,9 +89,13 @@ public class TimestampMatrix implements Serializable{
 	 * clone
 	 */
 	public synchronized TimestampMatrix clone(){
-		
-		// return generated automatically. Remove it when implementing your solution 
-		return null;
+		///TODO and check
+		TimestampMatrix clonedMatrix = new TimestampMatrix();
+        for (Map.Entry<String, TimestampVector> entry : timestampMatrix.entrySet()) {
+            clonedMatrix.timestampMatrix.put(entry.getKey(), entry.getValue().clone());
+        }
+
+        return clonedMatrix;
 	}
 	
 	/**
