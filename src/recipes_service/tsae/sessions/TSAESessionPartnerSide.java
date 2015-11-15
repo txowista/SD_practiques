@@ -27,6 +27,12 @@ import java.net.Socket;
 import communication.ObjectInputStream_DS;
 import communication.ObjectOutputStream_DS;
 import recipes_service.ServerData;
+//TODO 
+//import new for the phase 2
+import recipes_service.data.*;
+import recipes_service.tsae.data_structures.*;
+import recipes_service.communication.*;
+import java.util.*;
 
 /**
  * @author Joan-Manuel Marques
@@ -47,14 +53,49 @@ public class TSAESessionPartnerSide extends Thread{
 				
 		try {
 			ObjectOutputStream_DS out = new ObjectOutputStream_DS(socket.getOutputStream());
-			ObjectInputStream_DS in = new ObjectInputStream_DS(socket.getInputStream());
-
+			ObjectInputStream_DS in = new ObjectInputStream_DS(socket.getInputStream());		
 			// receive originator's summary and ack
-
+			//TODO
+			Message msg = (Message) in.readObject();
+			if (msg.type() == MsgType.AE_REQUEST){
+		   /******TODO******/
+				/**create object MessageAErequest since the msg received via socket to use the method
+				*of class
+				**/
+				MessageAErequest aeRquestMsg = (MessageAErequest) msg;
+				/** Get the LocalSumary and localAck
+				 * */
+				TimestampVector localSummary;
+				TimestampMatrix localAck;	
+				/** Use synchronized to lock the object serverdata thus 
+				 * we are careful with concurrent access to data structures
+				 * */
+	            synchronized (serverData) {
+	            	//localSumary is a clone of local 
+	                localSummary = serverData.getSummary().clone();
+	                serverData.getAck().update(serverData.getId(), localSummary);
+	                //localAck is a clone of local 
+	                localAck=serverData.getAck().clone();	               
+	            }
+	           
+	        /******TODO******/
 			// send operations
-
-			// send to originator: local's summary and ack
-
+			
+			// send to originator: local's summary and ack			
+			msg = new MessageAErequest(localSummary, localAck);			
+			out.writeObject(msg);
+			// receive operations
+			msg = (Message) in.readObject();
+			while (msg.type() == MsgType.OPERATION){			
+				msg = (Message) in.readObject();
+			}
+			}
+			// receive message to inform about the ending of the TSAE session
+			if (msg.type() == MsgType.END_TSAE){
+			// send and "end of TSAE session" message
+			msg = new MessageEndTSAE();
+			out.writeObject(msg);
+			}
 			// receive operations
 				
 			// receive message to inform about the ending of the TSAE session

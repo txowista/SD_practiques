@@ -88,7 +88,9 @@ public class TSAESessionOriginatorSide extends TimerTask{
 			/******TODO******/
 			TimestampVector localSummary;
 			TimestampMatrix localAck;
-			
+			/** Use synchronized to lock the object serverdata thus 
+			 * we are careful with concurrent access to data structures
+			 * */
             synchronized (serverData) {
                 localSummary = serverData.getSummary().clone();
                 serverData.getAck().update(serverData.getId(), localSummary);
