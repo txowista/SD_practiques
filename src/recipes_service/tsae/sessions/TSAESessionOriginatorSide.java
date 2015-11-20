@@ -32,6 +32,10 @@ import communication.ObjectInputStream_DS;
 import communication.ObjectOutputStream_DS;
 //TODO 
 //import new for the phase 2
+import recipes_service.data.AddOperation;
+import recipes_service.data.Operation;
+import recipes_service.data.OperationType;
+import recipes_service.data.Recipe;
 import recipes_service.tsae.data_structures.*;
 import recipes_service.communication.*;
 import java.util.*;
@@ -98,47 +102,50 @@ public class TSAESessionOriginatorSide extends TimerTask{
                
             }
             /******TODO******/
+
 			// Send to partner: local's summary and ack
-            List<MessageOperation> operations = new ArrayList<>();
 			Message msg = new MessageAErequest(localSummary, localAck);
-            out.writeObject(msg);
+			out.writeObject(msg);
 
-            // receive operations from partner
-            msg = (Message) in.readObject();
-            while (msg.type() == MsgType.OPERATION){
-            operations.add((MessageOperation)msg);
-            msg = (Message) in.readObject();
-            }
+			// receive operations from partner
+			msg = (Message) in.readObject();
+			while (msg.type() == MsgType.OPERATION){
+				Operation op = ((MessageOperation) msg).getOperation();
+				if(op.getType()== OperationType.ADD){
+                    Recipe rcpe = ((AddOperation) op).getRecipe();
+                    serverData.getRecipes().add(rcpe);
+                }
+                serverData.getLog().add(op);
+                msg = (Message) in.readObject();
+			}
 
-         // receive partner's summary and ack
+
+         	// receive partner's summary and ack
             if (msg.type() == MsgType.AE_REQUEST){
-            
-            // send operations
-            
-            // send and "end of TSAE session" message
-            msg = new MessageEndTSAE();
-            out.writeObject(msg);
-            // receive message to inform about the ending of the TSAE session
-            msg = (Message) in.readObject();
-            if (msg.type() == MsgType.END_TSAE){
-            //
-            }
-            }
+				// send operations
+				Log log = serverData.getLog();
+				TimestampVector partnerSummary = ((MessageAErequest) msg).getSummary();
+				List<Operation> operaciones = log.listNewer(partnerSummary);
 
-			// send and "end of TSAE session" message
+				for (Operation o : operaciones) {
+					out.writeObject(new MessageOperation(o));
+				}
 
-			// receive message to inform about the ending of the TSAE session
+				// send and "end of TSAE session" message
+				msg = new MessageEndTSAE();
+				out.writeObject(msg);
+				// receive message to inform about the ending of the TSAE session
+				msg = (Message) in.readObject();
+				if (msg.type() == MsgType.END_TSAE){
+					serverData.getSummary().updateMax(partnerSummary);
+				}
+			}
 
 			socket.close();
-		} //catch (ClassNotFoundException e) {//Comment because Eclipse said Description	Resource	Path	Location	Type
-		//Unreachable catch block for ClassNotFoundException. This exception is never thrown from the try statement body	TSAESessionPartnerSide.java	/2015t-practiques-SD--baseCode/src/recipes_service/tsae/sessions	line 65	Java Problem
-
-		catch (Exception e) {
+		} catch (IOException | ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
             System.exit(1);
-		}/*catch (IOException e) {//Comment because Exception
-	    }*/
-	
+		}
 	}
 }

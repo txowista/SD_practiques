@@ -56,7 +56,7 @@ else
 			# in case you want to run all processes in the same terminal emulator window run:
 			#		java -cp ./bin:../2013p-practica-SD--LSim-lib/* recipes_service.Server $1 $2 &
 			#gnome-terminal -x java -cp ../bin:../../LSim-libraries/* recipes_service.Server $* >$FILE &
-			gnome-terminal -x java -cp ../bin:../../LSim-libraries/* recipes_service.Server $* &
+			xterm -hold -e java -cp ../bin:../../LSim-libraries/* recipes_service.Server $* &
 		else
 			# runs all java processes in the same terminal emulator window
 	#		java -cp ../bin:../../LSim-libraries/* recipes_service.Server $* >$FILE &

@@ -21,6 +21,7 @@
 package recipes_service.tsae.data_structures;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
@@ -55,12 +56,7 @@ public class TimestampVector implements Serializable{
 	 * @param timestamp
 	 */
 	public synchronized void updateTimestamp(Timestamp timestamp){
-
-		//Obtein the hostID of the Timestamp pased
-		String hostID=timestamp.getHostid();
-		//With the method replace the timestamp with the timestamp pased
-		this.timestampVector.replace(hostID, timestamp);      
-		
+		this.timestampVector.put(timestamp.getHostid(), timestamp);
 	}
 	
 	/**
@@ -68,6 +64,13 @@ public class TimestampVector implements Serializable{
 	 * @param tsVector (a timestamp vector)
 	 */
 	public synchronized void updateMax(TimestampVector tsVector){
+		for (String key : tsVector.timestampVector.keySet()) {
+			Timestamp ts = tsVector.timestampVector.get(key);
+			Timestamp ts_propio = this.timestampVector.get(key);
+			if(ts_propio.compare(ts) < 0) {
+				timestampVector.put(ts_propio.getHostid(), ts);
+			}
+		}
 	}
 	
 	/**
@@ -77,9 +80,7 @@ public class TimestampVector implements Serializable{
 	 * received.
 	 */
 	public synchronized Timestamp getLast(String node){
-		
-		// return generated automatically. Remove it when implementing your solution 
-		return null;
+		return this.timestampVector.get(node);
 	}
 	
 	/**
@@ -89,17 +90,28 @@ public class TimestampVector implements Serializable{
 	 *  @param tsVector (timestamp vector)
 	 */
 	public synchronized void mergeMin(TimestampVector tsVector){
+		for (String key : tsVector.timestampVector.keySet()) {
+			Timestamp ts = tsVector.timestampVector.get(key);
+			Timestamp ts_propio = this.timestampVector.get(key);
+			if(ts_propio.compare(ts) > 0) {
+				timestampVector.put(ts_propio.getHostid(), ts);
+			}
+
+		}
 	}
 	
 	/**
 	 * clone
 	 */
 	public synchronized TimestampVector clone(){
-		/******TODO and check******/
-		//return a new object of this timestampVector that clone this 
-		TimestampVector clonedVector= new TimestampVector((List<String>)this.timestampVector);
-		return clonedVector;
-		/******TODO******/
+		List<String> participants = new ArrayList<String>(timestampVector.keySet());
+		TimestampVector clone = new TimestampVector(participants);
+
+		for (String key : timestampVector.keySet()) {
+			Timestamp ts = this.timestampVector.get(key);
+			clone.timestampVector.put(ts.getHostid(), ts);
+		}
+		return clone;
 				
 	}
 	/**
@@ -108,16 +120,26 @@ public class TimestampVector implements Serializable{
 	 * @return true if TimestampVector is equals,or false.
 	 */
 	public synchronized boolean equals(TimestampVector tsVector){
-		//variable boolean to record result
-		boolean result;
-		//if the TimestampVector passed and this object return true because are equals
-		if (this.timestampVector == tsVector.timestampVector) return true;
-		//if the TimestampVector passed or this object are null return false because are not TimestampVector
-        if (this.timestampVector == null || tsVector.timestampVector == null)return false; 
-        //the result of method equals of class
-        result=this.timestampVector.equals(tsVector.timestampVector);
-        return result;
-		//return false;
+		if (this == tsVector)
+			return true;
+		if (timestampVector == null) {
+			if (tsVector.timestampVector != null)
+				return false;
+			else
+				return true;
+		} else {
+			if (timestampVector.size() != tsVector.timestampVector.size()){
+				return false;
+			}
+			boolean equal = true;
+			for (Iterator<String> it = timestampVector.keySet().iterator(); it.hasNext() && equal; ){
+				String host_name = it.next();
+				equal = timestampVector.get(host_name).equals(tsVector.timestampVector.get(host_name));
+				if (!equal){
+				}
+			}
+			return equal;
+		}
 	}
 
 	/**

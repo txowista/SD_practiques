@@ -21,11 +21,7 @@
 package recipes_service.tsae.data_structures;
 
 import java.io.Serializable;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Vector;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import recipes_service.data.Operation;
@@ -113,8 +109,19 @@ public class Log implements Serializable{
 	 * @return list of operations
 	 */
 	public synchronized List<Operation> listNewer(TimestampVector sum){
-		// return generated automatically. Remove it when implementing your solution 
-		return null;
+		List<Operation> operations = new ArrayList<>();
+
+		for (String host_name : log.keySet()) {
+			Timestamp last_timestamp = sum.getLast(host_name);
+			List<Operation> operacions_host = log.get(host_name);
+			for (Operation o : operacions_host) {
+				if (o.getTimestamp().compare(last_timestamp) < 1) {
+					operations.add(o);
+				}
+			}
+		}
+
+		return operations;
 
 	}
 	

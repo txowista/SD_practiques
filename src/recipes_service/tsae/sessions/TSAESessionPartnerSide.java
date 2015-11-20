@@ -53,64 +53,60 @@ public class TSAESessionPartnerSide extends Thread{
 				
 		try {
 			ObjectOutputStream_DS out = new ObjectOutputStream_DS(socket.getOutputStream());
-			ObjectInputStream_DS in = new ObjectInputStream_DS(socket.getInputStream());		
-			// receive originator's summary and ack
-			//TODO
+			ObjectInputStream_DS in = new ObjectInputStream_DS(socket.getInputStream());
+
+			TimestampVector localSummary;
+			TimestampMatrix localAck;
+
 			Message msg = (Message) in.readObject();
-			if (msg.type() == MsgType.AE_REQUEST){
-		   /******TODO******/
-				/**create object MessageAErequest since the msg received via socket to use the method
-				*of class
-				**/
-				MessageAErequest aeRquestMsg = (MessageAErequest) msg;
-				/** Get the LocalSumary and localAck
-				 * */
-				TimestampVector localSummary;
-				TimestampMatrix localAck;	
-				/** Use synchronized to lock the object serverdata thus 
-				 * we are careful with concurrent access to data structures
-				 * */
-	            synchronized (serverData) {
-	            	//localSumary is a clone of local 
-	                localSummary = serverData.getSummary().clone();
-	                serverData.getAck().update(serverData.getId(), localSummary);
-	                //localAck is a clone of local 
-	                localAck=serverData.getAck().clone();	               
-	            }
-	           
-	        /******TODO******/
-			// send operations
-			
-			// send to originator: local's summary and ack			
-			msg = new MessageAErequest(localSummary, localAck);			
-			out.writeObject(msg);
-			// receive operations
-			msg = (Message) in.readObject();
-			while (msg.type() == MsgType.OPERATION){			
-				msg = (Message) in.readObject();
-			}
-			}
-			// receive message to inform about the ending of the TSAE session
-			if (msg.type() == MsgType.END_TSAE){
-			// send and "end of TSAE session" message
-			msg = new MessageEndTSAE();
-			out.writeObject(msg);
-			}
-			// receive operations
-				
-			// receive message to inform about the ending of the TSAE session
+			if (msg.type() == MsgType.AE_REQUEST) {
+                TimestampVector originatorSummary = ((MessageAErequest) msg).getSummary();
+                // send operations
+                Log log = serverData.getLog();
+                List<Operation> operaciones = log.listNewer(originatorSummary);
 
-			// send and "end of TSAE session" message
+                for (Operation o : operaciones) {
+                    out.writeObject(new MessageOperation(o));
+                }
 
-			socket.close();		
-		} //catch (ClassNotFoundException e) {//Comment because Eclipse said Description	Resource	Path	Location	Type
-		//Unreachable catch block for ClassNotFoundException. This exception is never thrown from the try statement body	TSAESessionPartnerSide.java	/2015t-practiques-SD--baseCode/src/recipes_service/tsae/sessions	line 65	Java Problem
+                synchronized (serverData) {
+                    //localSumary is a clone of local
+                    localSummary = serverData.getSummary().clone();
+                    serverData.getAck().update(serverData.getId(), localSummary);
+                    //localAck is a clone of local
+                    localAck = serverData.getAck().clone();
+                }
 
-		catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+                // send to originator: local's summary and ack
+                msg = new MessageAErequest(localSummary, localAck);
+                out.writeObject(msg);
+
+                // receive operations
+                msg = (Message) in.readObject();
+                while (msg.type() == MsgType.OPERATION) {
+                    Operation op = ((MessageOperation) msg).getOperation();
+                    if(op.getType()== OperationType.ADD){
+                        Recipe rcpe = ((AddOperation) op).getRecipe();
+                        serverData.getRecipes().add(rcpe);
+                    }
+                    serverData.getLog().add(op);
+                    msg = (Message) in.readObject();
+                }
+
+                // receive message to inform about the ending of the TSAE session
+                if (msg.type() == MsgType.END_TSAE) {
+                    serverData.getSummary().updateMax(originatorSummary);
+                    msg = new MessageEndTSAE();
+                    out.writeObject(msg);
+                }
+
+            }
+            socket.close();
+
+        } catch (IOException | ClassNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
             System.exit(1);
-		}/*catch (IOException e) {//Comment because Exception
-	    }*/
+		}
 	}
 }
