@@ -111,9 +111,9 @@ public class Log implements Serializable{
 	public synchronized List<Operation> listNewer(TimestampVector sum){
 		List<Operation> operations = new ArrayList<>();
 
-		for (String host_name : log.keySet()) {
+		for (String host_name : this.log.keySet()) {
 			Timestamp last_timestamp = sum.getLast(host_name);
-			List<Operation> operacions_host = log.get(host_name);
+			List<Operation> operacions_host = this.log.get(host_name);
 			for (Operation o : operacions_host) {
 				if (o.getTimestamp().compare(last_timestamp) < 1) {
 					operations.add(o);
