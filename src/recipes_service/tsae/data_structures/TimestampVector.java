@@ -56,7 +56,9 @@ public class TimestampVector implements Serializable{
 	 * @param timestamp
 	 */
 	public synchronized void updateTimestamp(Timestamp timestamp){
-		this.timestampVector.put(timestamp.getHostid(), timestamp);
+		//Comentar con Miguel si seria mejor un replace que un put
+		//this.timestampVector.put(timestamp.getHostid(), timestamp);
+		this.timestampVector.replace(timestamp.getHostid(), timestamp);
 	}
 	
 	/**
@@ -64,13 +66,25 @@ public class TimestampVector implements Serializable{
 	 * @param tsVector (a timestamp vector)
 	 */
 	public synchronized void updateMax(TimestampVector tsVector){
-		for (String key : tsVector.timestampVector.keySet()) {
-			Timestamp ts = tsVector.timestampVector.get(key);
+		for (String key : this.timestampVector.keySet()) {
+			Timestamp ts = tsVector.getLast(key);
+			Timestamp ts_propio = this.getLast(key);
+			if(ts_propio.compare(ts) < 0) {			
+				this.timestampVector.replace(key, ts);			
+			}
+			/*Revisar junto con Miguel creo que seria mas optimo
+			 * usar la funcion getLast
+			 * Respecto a hacer un replace o un put ya que recorremos
+			 * todos los nodos del actual.Si existe a traves del compare
+			 * al ser superior deberiamos reemplazarlo mas que añadir uno nuevo
+			 */
+			/*Timestamp ts = tsVector.timestampVector.get(key);
 			Timestamp ts_propio = this.timestampVector.get(key);
 			if(ts_propio.compare(ts) < 0) {
 				timestampVector.put(ts_propio.getHostid(), ts);
-			}
+			}*/
 		}
+		
 	}
 	
 	/**
