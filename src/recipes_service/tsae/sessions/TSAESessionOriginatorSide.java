@@ -97,7 +97,7 @@ public class TSAESessionOriginatorSide extends TimerTask{
 			 * */
             synchronized (serverData) {
                 localSummary = serverData.getSummary().clone();
-                serverData.getAck().update(serverData.getId(), localSummary);
+                //serverData.getAck().update(serverData.getId(), localSummary);
                 localAck=serverData.getAck().clone();
                
             }
@@ -142,10 +142,13 @@ public class TSAESessionOriginatorSide extends TimerTask{
 			}
 
 			socket.close();
-		} catch (IOException | ClassNotFoundException e) {
+		} catch (ClassNotFoundException e) {
+
 			// TODO Auto-generated catch block
 			e.printStackTrace();
             System.exit(1);
+		} catch (IOException e) {
+			//System.out.println("Sesion desconectada");
 		}
 	}
 }

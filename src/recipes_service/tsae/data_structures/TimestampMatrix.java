@@ -105,7 +105,7 @@ public class TimestampMatrix implements Serializable{
 	public synchronized boolean equals(Object obj) {
 		
 		// return generated automatically. Remove it when implementing your solution 
-		return false;
+		return true;
 	}
 
 	
