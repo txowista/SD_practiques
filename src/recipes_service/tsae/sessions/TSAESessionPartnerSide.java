@@ -21,8 +21,10 @@
 package recipes_service.tsae.sessions;
 
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
 
 import communication.ObjectInputStream_DS;
 import communication.ObjectOutputStream_DS;
@@ -103,7 +105,14 @@ public class TSAESessionPartnerSide extends Thread{
             }
             socket.close();
 
-        } catch (IOException | ClassNotFoundException e) {
+        }
+		catch (SocketException e){
+			e.printStackTrace();
+		}
+		catch (EOFException ex){
+			System.exit(1);
+		} 
+		catch (IOException | ClassNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
             System.exit(1);

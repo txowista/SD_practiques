@@ -20,8 +20,10 @@
 
 package recipes_service.tsae.sessions;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.List;
 import java.util.TimerTask;
 
@@ -142,7 +144,8 @@ public class TSAESessionOriginatorSide extends TimerTask{
 			}
 
 			socket.close();
-		} catch (IOException | ClassNotFoundException e) {
+		}		
+		catch (IOException | ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
             System.exit(1);
