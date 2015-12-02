@@ -22,7 +22,9 @@ package recipes_service.tsae.data_structures;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
 
 import recipes_service.data.Operation;
 
@@ -41,7 +43,8 @@ public class Log implements Serializable{
 	 * that stores a list of operations for each member of 
 	 * the group.
 	 */
-	private ConcurrentHashMap<String, List<Operation>> log= new ConcurrentHashMap<String, List<Operation>>();  
+	private ConcurrentHashMap<String, List<Operation>> log= new ConcurrentHashMap<String, List<Operation>>();
+	private Semaphore mutex = new Semaphore(1);
 
 	public Log(List<String> participants){
 		// create an empty log
@@ -60,26 +63,37 @@ public class Log implements Serializable{
 	 * @return true if op is inserted, false otherwise.
 	 */
 	public synchronized boolean add(Operation op){
-		/******TODO******/
-		//First get the HostID  through the class op(that is class operation) method getHostid() 
-		String hostID = op.getTimestamp().getHostid(); 
-		// call a method to obtain the lastTimestamp of hostID
-        Timestamp lastTimestamp = this.returnLastTimestamp(hostID);
-        //create class timestampDifference to compare
-        Timestamp timestampDifference=op.getTimestamp();
-        //obtain in long the difference with 
-        long longTimestampDifference = timestampDifference.compare(lastTimestamp); 
-        //create variable if Add to controller the value return and if op is inserted
-        boolean result=false;
-        //if lastTimestamp is null and the difference is 0 result is true
-        if (lastTimestamp == null && longTimestampDifference == 0)result=true;
-        //if lastTimestamp is not null and the difference is 1 result is true
-        if(lastTimestamp != null && longTimestampDifference == 1)result=true;
-        //if result is true the operation is add
-        if(result)this.log.get(hostID).add(op);    
-        return result;        
-        /******TODO******/
+		try {
+			mutex.acquire();
+
+			//Obtengo el nombre del host
+			Timestamp ts_op = op.getTimestamp();
+			String host_name = ts_op.getHostid();
+			//Obtengo la última operacion
+			List<Operation> operaciones = log.get(host_name);
+			if (operaciones.size() > 0) {
+				Operation ultima = operaciones.get(operaciones.size() - 1);
+
+				if (ts_op.compare(ultima.getTimestamp()) > 0) {
+					log.get(host_name).add(op);
+				}
+				else{
+					return false;
+				}
+			}
+			else {
+				log.get(host_name).add(op);
+			}
+
+		} catch (InterruptedException e) {
+			return false;
+		} finally {
+			mutex.release();
+		}
+
+		return true;
 	}
+
 	/**
 	 * This method return the LastTimestamp
 	 * @param: String with the host ID
@@ -133,29 +147,49 @@ public class Log implements Serializable{
 	 * @param ack: ackSummary.
 	 */
 	public synchronized void purgeLog(TimestampMatrix ack){
+		TimestampVector minTSV=ack.minTimestampVector();
+		for(Map.Entry<String, List<Operation>> entry : log.entrySet()){
+			String implicated=entry.getKey();
+			List <Operation> ops=entry.getValue();
+			Timestamp lastTS=minTSV.getLast(implicated);
+			for(int i=ops.size()-1;i>=0;i--){
+				Operation op=ops.get(i);
+				if (op.getTimestamp().compare(lastTS)<0){
+					ops.remove(i);
+				}
+			}
+			
+		}
 	}
 
 	/**
 	 * equals
-	 * @param object
-	 * @return boolean with the result of operation
 	 */
 	@Override
 	public synchronized boolean equals(Object obj) {
-		/******TODO******/
-		boolean result;
-		//if object is null return false and is not necessary do anything
-		if(obj==null)return false;
-		//if object is this same return true because are equals 
-	    if (this == obj)return true;
-	    //if object is not object log return false  
-        if (!(obj instanceof Log))return false;    
-        //create object log with the @param
-        Log compare = (Log) obj;
-        //return the result of method compare
-        result=this.log.equals(compare.log);
-        return result;
-        /******TODO******/
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Log other = (Log) obj;
+		if (log == null) {
+			return other.log == null;
+		} else {
+			if (log.size() != other.log.size()){
+				return false;
+			}
+			boolean equal = true;
+			for (Iterator<String> it = log.keySet().iterator(); it.hasNext() && equal; ){
+				String host_name = it.next();
+				equal = log.get(host_name).equals(other.log.get(host_name));
+				if (!equal){
+				}
+			}
+			return equal;
+		}
+
 	}
 
 	/**

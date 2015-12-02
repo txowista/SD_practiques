@@ -74,7 +74,7 @@ public class TSAESessionPartnerSide extends Thread{
                 synchronized (serverData) {
                     //localSumary is a clone of local
                     localSummary = serverData.getSummary().clone();
-                    serverData.getAck().update(serverData.getId(), localSummary);
+                    //serverData.getAck().update(serverData.getId(), localSummary);
                     //localAck is a clone of local
                     localAck = serverData.getAck().clone();
                 }
@@ -104,18 +104,12 @@ public class TSAESessionPartnerSide extends Thread{
 
             }
             socket.close();
-
-        }
-		catch (SocketException e){
-			e.printStackTrace();
-		}
-		catch (EOFException ex){
-			System.exit(1);
-		} 
-		catch (IOException | ClassNotFoundException e) {
+        } catch (ClassNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
             System.exit(1);
+        } catch (IOException e) {
+            //System.out.println("Sesion desconectada");
 		}
 	}
 }

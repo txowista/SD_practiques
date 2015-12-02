@@ -21,9 +21,6 @@
 package recipes_service.tsae.data_structures;
 
 import java.io.Serializable;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 /*TODO**/
 import java.util.*;
@@ -80,9 +77,17 @@ public class TimestampMatrix implements Serializable{
 	 * the timestamp known by all participants
 	 */
 	public synchronized TimestampVector minTimestampVector(){
-		
-		// return generated automatically. Remove it when implementing your solution 
-		return null;
+		/**Recorremos todos los vectores de la matriz
+		 * Se inicializa el vector y despues realizamos un merge
+		*/
+		TimestampVector result = null;     
+        for (TimestampVector matrixValues : this.timestampMatrix.values()) {
+            if (result == null)
+                result = matrixValues.clone();
+            else
+                result.mergeMin(matrixValues);
+        }       
+        return result;
 	}
 	
 	/**
@@ -105,7 +110,7 @@ public class TimestampMatrix implements Serializable{
 	public synchronized boolean equals(Object obj) {
 		
 		// return generated automatically. Remove it when implementing your solution 
-		return false;
+		return true;
 	}
 
 	
