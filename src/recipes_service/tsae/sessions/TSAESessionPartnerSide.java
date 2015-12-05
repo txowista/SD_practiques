@@ -74,7 +74,8 @@ public class TSAESessionPartnerSide extends Thread{
                 synchronized (serverData) {
                     //localSumary is a clone of local
                     localSummary = serverData.getSummary().clone();
-                    //serverData.getAck().update(serverData.getId(), localSummary);
+                    String serverDataId=serverData.getId();
+                    serverData.getAck().update(serverDataId, localSummary);
                     //localAck is a clone of local
                     localAck = serverData.getAck().clone();
                 }
@@ -98,6 +99,8 @@ public class TSAESessionPartnerSide extends Thread{
                 // receive message to inform about the ending of the TSAE session
                 if (msg.type() == MsgType.END_TSAE) {
                     serverData.getSummary().updateMax(originatorSummary);
+                    serverData.getAck().updateMax(((MessageAErequest) msg).getAck());
+                    serverData.getLog().purgeLog(serverData.getAck());
                     msg = new MessageEndTSAE();
                     out.writeObject(msg);
                 }

@@ -99,7 +99,8 @@ public class TSAESessionOriginatorSide extends TimerTask{
 			 * */
             synchronized (serverData) {
                 localSummary = serverData.getSummary().clone();
-                //serverData.getAck().update(serverData.getId(), localSummary);
+				String serverDataId=serverData.getId();
+                serverData.getAck().update(serverDataId, localSummary);
                 localAck=serverData.getAck().clone();
                
             }
@@ -140,6 +141,8 @@ public class TSAESessionOriginatorSide extends TimerTask{
 				msg = (Message) in.readObject();
 				if (msg.type() == MsgType.END_TSAE){
 					serverData.getSummary().updateMax(partnerSummary);
+					serverData.getAck().updateMax(((MessageAErequest) msg).getAck());
+					serverData.getLog().purgeLog(serverData.getAck());
 				}
 			}
 
